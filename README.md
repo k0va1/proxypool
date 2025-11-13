@@ -1,28 +1,48 @@
 # Proxypool
 
-TODO: Delete this and the text below, and describe your gem
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/proxypool`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-## Installation
-
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
-
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-```
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-```
-
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+# Gemfile
+gem "proxypool"
+```
+
+
+```ruby
+require "proxypool"
+
+proxies = [
+"socks5://123.45.67:1233",
+"socks5://98.76.54:3210",
+"socks5://11.22.33:4455"
+]
+
+pool = Proxypool.create(proxies: proxies)
+pool.next_proxy # => "socks5://98.76.54:3210"
+pool.next_proxy # => "socks5://11.22.33:4455"
+
+
+```
+
+Using with a block:
+
+```ruby
+require "proxypool"
+require "faraday"
+require "json"
+
+proxies = proc do
+  proxy_response = Faraday.get("https://raw.githubusercontent.com/proxifly/free-proxy-list/refs/heads/main/proxies/protocols/socks5/data.json")
+  JSON.parse(proxy_response.body).pluck("proxy") #=> ["socks5://23.45.67:8901", "socks5://98.76.54:3210", ...]
+end
+
+pool = Proxypool.create(proxies: proxies)
+pool.next_proxy # => "socks5://23.45.67:8901"
+
+pool.refresh_proxies! # Refresh the proxy list from the proc
+```
+
+
 
 ## Development
 

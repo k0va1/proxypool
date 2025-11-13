@@ -6,11 +6,8 @@ install:
 console:
 	bin/console
 
-
 test:
 	bundle exec rspec
-
-
 
 lint-fix:
 	bundle exec standardrb --fix
