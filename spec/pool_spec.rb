@@ -202,7 +202,7 @@ RSpec.describe Proxypool::Pool do
     end
 
     it "handles proc that returns nil" do
-      nil_loader = -> { nil }
+      nil_loader = -> {}
       pool = described_class.new(proxies: nil_loader)
 
       expect(pool.size).to eq(0)
