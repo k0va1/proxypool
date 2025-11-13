@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    proxypool (0.1.0)
+    proxypool (0.2.0)
       zeitwerk (~> 2.6)
 
 GEM
