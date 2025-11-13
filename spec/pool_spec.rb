@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "json"
+
 RSpec.describe Proxypool::Pool do
   let(:sample_proxies) do
     [
@@ -151,6 +153,60 @@ RSpec.describe Proxypool::Pool do
       expect(pool.size).to eq(3)
       pool.refresh_proxies!
       expect(pool.size).to eq(3)
+    end
+  end
+
+  describe "proc-based proxy loading" do
+    it "initializes with a proc that returns proxy list" do
+      proxy_loader = -> { sample_proxies }
+      pool = described_class.new(proxies: proxy_loader)
+
+      expect(pool.size).to eq(3)
+      expect(pool.valid_count).to eq(3)
+    end
+
+    it "calls the proc each time proxies are refreshed" do
+      call_count = 0
+      dynamic_proxies = -> {
+        call_count += 1
+        case call_count
+        when 1
+          ["http://first.proxy:8080"]
+        when 2
+          ["http://second.proxy:8080", "https://third.proxy:3128"]
+        else
+          sample_proxies
+        end
+      }
+
+      pool = described_class.new(proxies: dynamic_proxies)
+      expect(pool.size).to eq(1) # First call
+      expect(call_count).to eq(1)
+
+      pool.refresh_proxies!
+      expect(pool.size).to eq(2) # Second call
+      expect(call_count).to eq(2)
+
+      pool.refresh_proxies!
+      expect(pool.size).to eq(3) # Third call
+      expect(call_count).to eq(3)
+    end
+
+    it "handles proc that returns empty array" do
+      empty_loader = -> { [] }
+      pool = described_class.new(proxies: empty_loader)
+
+      expect(pool.size).to eq(0)
+      expect(pool).to be_empty
+      expect(pool.next_proxy).to be_nil
+    end
+
+    it "handles proc that returns nil" do
+      nil_loader = -> { nil }
+      pool = described_class.new(proxies: nil_loader)
+
+      expect(pool.size).to eq(0)
+      expect(pool).to be_empty
     end
   end
 
